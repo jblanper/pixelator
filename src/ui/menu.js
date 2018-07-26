@@ -10,13 +10,12 @@ function createSVGElement (tagName, attributes) {
 
 export default class Menu {
     constructor ({scope, shouldDraw = true, shouldUpdate = true, hasMenuBtn = true}) {
-        this.reset();
-
         this.scope = scope;
         this.shouldUpdate = shouldUpdate;
         this.shouldDraw = shouldDraw;
-
         this.hasMenuBtn = hasMenuBtn;
+
+        this.reset();
 
         this.menu = Object.assign(
             document.createElement('div'),
@@ -34,9 +33,13 @@ export default class Menu {
     }
 
     reset () {
-        const previousMenu = document.querySelector('#ui')
-
+        const previousMenu = document.querySelector('#ui');
         if (previousMenu) previousMenu.parentNode.removeChild(previousMenu);
+
+        if (this.hasMenuBtn) {
+            const menuBtn = document.querySelector('#menu');
+            if (menuBtn) menuBtn.parentNode.removeChild(menuBtn);
+        }
     }
 
     addSeparator () {
@@ -44,23 +47,9 @@ export default class Menu {
         this.menu.appendChild(hr);
     }
 
-    addStyleLink () {
-        const styleLink = Object.assign(
-            document.createElement('link'),
-            {rel: 'stylesheet', href: './ui/ui.css', type: 'text/css'}
-        );
-
-        document.head.appendChild(styleLink);
-    }
-
     render () {
         if (this.hasMenuBtn) {
             this.svg = createSVGElement('svg', {width: 45, height: 45, id: 'menu'});
-
-            const circle = createSVGElement('circle',
-                {cx: 22.5, cy: 22.5, r: 22.5, fill: '#fff'}
-            );
-            this.svg.appendChild(circle);
 
             const rect1 = createSVGElement('rect',
                 {x: 10, y: 10, width: 25, height: 5, fill: '#000'}
@@ -78,9 +67,9 @@ export default class Menu {
             this.svg.appendChild(rect3);
 
             document.body.appendChild(this.svg);
+            this.menu.classList.add('moverIzq');
         }
 
-        this.addStyleLink();
         this.menu.appendChild(this.closeBtn);
         document.body.appendChild(this.menu);
 
@@ -98,7 +87,7 @@ export default class Menu {
     }
 
     openEventHandler (event) {
-        this.menu.classList.add('moverDer');
+        this.menu.classList.remove('moverIzq');
 
         this.closeBtn.addEventListener(
             'click', this.closeEventHandler.bind(this), {once: true}
@@ -106,7 +95,7 @@ export default class Menu {
     }
 
     closeEventHandler (event) {
-        this.menu.classList.remove('moverDer');
+        this.menu.classList.add('moverIzq');
         event.stopPropagation();
 
         this.svg.addEventListener(
@@ -116,8 +105,9 @@ export default class Menu {
 
     updateEventhandler (event) {
         if (
-            (event.type === 'change' && event.target.type === 'range') ||
-            (event.type === 'click' && event.target.nodeName === 'BUTTON')
+            (event.type === 'change' && (
+                event.target.type === 'range' || event.target.tagName === 'SELECT')
+            ) || (event.type === 'click' && event.target.nodeName === 'BUTTON')
         ) {
             if (this.shouldUpdate) this.scope.update();
             if (this.shouldDraw) this.scope.draw();
