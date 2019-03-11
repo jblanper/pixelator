@@ -1,26 +1,26 @@
+import { html } from './html.js';
+
 export default class Description {
-    constructor (title, text) {
+    constructor ({parent, title, content}) {
         this.title = title;
-        this.text = text
+        this.content = content;
+
+        this.node = null;
+        this.parent = parent;
 
         this.render();
     }
 
     render () {
-        const ui = document.querySelector('#ui');
-        const div = document.createElement('div');
-        div.id = 'description';
+        this.node = html('div', {id: 'description'}, [
+            html('h1', {textContent: this.title}, null)
+        ]);
 
-        const h1 = document.createElement('h1');
-        h1.textContent = this.title;
-        div.appendChild(h1);
-
-        this.text.forEach(par => {
-            const p = document.createElement('p');
-            p.textContent = par;
-            div.appendChild(p);
+        this.content.forEach(text => {
+            const p = html('p', {textContent: text}, null);
+            this.node.appendChild(p);
         });
 
-        ui.appendChild(div);
+        this.parent.node.appendChild(this.node);
     }
 }

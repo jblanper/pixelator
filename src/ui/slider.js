@@ -1,53 +1,54 @@
+import { html } from './html.js';
+
 export default class Slider {
-    constructor ({max, min, step = 1, scope, prop, label = undefined}) {
-        this.scope = scope;
+    constructor ({
+        parent, max, min, step = 1, value, prop, scope = null, updateFn = null, label
+    }) {
         this.prop = prop;
-        this.label = (label) ? label : prop
+        this.scope = scope;
+        this.updateFn = updateFn;
 
-        this.slider = Object.assign(
-            document.createElement('input'), {
-                type: 'range', value: scope[prop],
-                max: max, min: min, step: step, id: this.label.replace(/\s/g, '-')
-        });
+        this.label = label;
+        this.max = max, this.min = min, this.step = step;
+        this.value = value;
 
-        this.output = document.createElement('output');
-        this.output.textContent = scope[prop];
+        this.parent = parent;
+        this.node = null;
+        this.input = null;
+        this.output = null;
 
         this.render();
         this.eventListener();
     }
 
     render () {
-        const ui = document.querySelector('#ui');
+        this.input = html('input', {
+            type: 'range', id: this.prop, max: this.max,
+            min: this.min, step: this.step, value: this.value
+        });
 
-        const fragment = document.createDocumentFragment();
-        const div = document.createElement('div');
-        div.classList.add('slider');
+        this.output = html('output', {textContent: this.value});
 
-        const labelTag = Object.assign(
-            document.createElement('label'),
-            {textContent: `${this.label} \u2014 `, for: this.slider.id}
-        );
+        this.node = html('div', {classes: ['slider']}, [
+            html('label', {for: this.prop, textContent: `${this.label} \u2014 `}),
+            this.output, html('br'), this.input
+        ]);
 
-        const br = document.createElement('br');
-
-
-        fragment.appendChild(div);
-        div.appendChild(labelTag);
-        div.appendChild(this.output);
-        div.appendChild(br);
-        div.appendChild(this.slider);
-        ui.appendChild(fragment);
+        this.parent.node.appendChild(this.node);
     }
 
     eventListener () {
-        this.slider.addEventListener('input', this.eventHandler.bind(this));
+        this.input.addEventListener('change', this.eventHandler.bind(this));
     }
 
-    eventHandler (event) {
-        const value = this.slider.valueAsNumber;
-
+    eventHandler (e) {
+        const value = this.input.valueAsNumber;
         this.output.textContent = value;
-        this.scope[this.prop] = value;
+
+        if (this.scope) this.scope[this.prop] = value;
+        else this.parent.scope[this.prop] = value;
+
+        if (this.updateFn) this.updateFn();
+        else this.parent.updateFn();
     }
 }

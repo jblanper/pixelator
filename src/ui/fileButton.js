@@ -1,37 +1,40 @@
-export default class FileButton {
-    constructor ({text, scope, prop = undefined, type = 'image'}) {
-        this.scope = scope;
-        this.prop = prop;
-        this.type = type;
+import { html } from './html.js';
 
-        this.text = text;
-        this.fileInput = Object.assign(
-            document.createElement('input'),
-            {type: 'file', id: prop}
-        );
+export default class FileButton {
+    constructor ({
+        parent, label, scopeOptions = undefined, updateFn = null,
+        type = 'image'
+    }) {
+        this.scopeOptions = scopeOptions;
+        this.updateFn = updateFn;
+
+        this.type = type;
+        this.label = label;
+
+        this.parent = parent;
+        this.node = null;
+        this.input = null;
 
         this.render();
         this.eventListener();
     }
 
     render () {
-        const ui = document.querySelector('#ui');
-
-        const label = Object.assign(
-            document.createElement('label'),
-            {textContent: this.text}
+        this.input = html('input', {type: 'file'}, null);
+        this.node = html('label', {
+            textContent: this.label, id: this.label.replace(/\s/g, '-'),
+            classes: ['file-btn']
+            }, [this.input]
         );
-        label.classList.add('file-btn');
 
-        label.appendChild(this.fileInput);
-        ui.appendChild(label);
+        this.parent.node.appendChild(this.node);
     }
 
     eventListener () {
-        this.fileInput.addEventListener('change', this.eventHandler.bind(this));
+        this.input.addEventListener('change', this.eventHandler.bind(this));
     }
 
-    eventHandler (event) {
+    eventHandler (e) {
         const reader = new FileReader();
 
         reader.onload = file => {
@@ -40,12 +43,15 @@ export default class FileButton {
                 ? JSON.parse(file.target.result)
                 : file.target.result;
 
-            const options = (this.prop) ? {[this.prop]: result} : result;
+            const options = (this.scopeOptions)
+                ? {[this.scopeOptions]: result}
+                : result;
 
-            this.scope.init(options);
+            if (this.updateFn) this.updateFn(options);
+            else this.parent.updateFn(options);
         }
 
-        if (this.type === 'image') reader.readAsDataURL(event.target.files[0]);
-        if (this.type === 'json') reader.readAsText(event.target.files[0]);
+        if (this.type === 'image') reader.readAsDataURL(e.target.files[0]);
+        if (this.type === 'json') reader.readAsText(e.target.files[0]);
     }
 }

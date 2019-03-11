@@ -1,9 +1,5 @@
 import ImageMatrix from './imageMatrix.js';
 import Menu from './ui/menu.js';
-import Slider from './ui/slider.js';
-import FileButton from './ui/fileButton.js';
-import DownloadButton from './ui/downloadButton.js';
-import Description from './ui/description.js';
 
 export default class Sketch {
     constructor (ctx, options) {
@@ -36,49 +32,63 @@ export default class Sketch {
     }
 
     setBindings () {
-        this.menu = new Menu({scope: this});
+        const menu = new Menu({
+            showOnLoad: true,
+            updateFn: _ => {
+                this.update();
+                this.draw();
+            },
+            scope: this
+        });
 
-        this.description = new Description(
-            'Pixelator', [
-            'This web turns any photo into a complex tessellations.',
-            `Change the number of columns and rows of the tessellation \
-            with the sliders. A new image from a local device can \ 
-            be locally loaded. No data goes to no server. Enjoy!`
+        menu.createComponent('description', {
+            title: 'Pixelator', 
+            content: [
+                'This web turns any photo into a complex tessellations.',
+                `Change the number of columns and rows of the tessellation \
+                with the sliders. A new image from a local device can \ 
+                be locally loaded. No data goes to no server. Enjoy!`
             ]
-        );
+        });
 
-        this.menu.addSeparator();
+        menu.addSeparator();
 
-        this.columnSlider = new Slider ({
+        const columnSlider = menu.createComponent('slider', {
             prop: 'columns',
+            label: 'columns',
             scope: this.imageMatrix,
             max: this.imageMatrix.cachedImg.width / 7,
             min: 2,
+            value: this.imageMatrix.columns
         });
 
-        this.rowSlider = new Slider ({
+        const rowSlider = menu.createComponent('slider', {
             prop: 'rows',
+            label: 'rows',
             scope: this.imageMatrix,
             max: this.imageMatrix.cachedImg.height / 7,
             min: 4,
+            value: this.imageMatrix.rows
         });
 
-        this.menu.addSeparator();
+        menu.addSeparator();
 
-        this.urlButton = new FileButton({
-            prop: 'imageUrl',
-            scope: this,
-            text: 'change img',
+        menu.createComponent('fileButton', {
+            scopeOptions: 'imageUrl',
+            updateFn: this.init.bind(this),
+            label: 'upload IMG'
         });
 
-        this.getImgBtn = new DownloadButton({
-            text: 'get IMG', scope: this, prop: 'png' 
+        menu.createComponent('downloadButton', {
+            fn: this.setPng.bind(this),
+            label: 'download IMG'
         });
 
-        this.menu.addSignature();
+
+        menu.addSignature();
     }
 
-    get png () {
+    setPng () {
         const cachedCanvasCtx = Object.assign(
             document.createElement('canvas'),
             {width: this._ctx.canvas.width, height: this._ctx.canvas.height}
