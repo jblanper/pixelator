@@ -1,4 +1,5 @@
 # pixelator
-Web app to make abstract tessellations from images.
+
+Web app that divides an image in color rectangles turning them into abstract tessellations.
 
 This web is a small interactive experiment with html canvas.
