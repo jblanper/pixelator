@@ -96,7 +96,10 @@ export default class Sketch {
 
         cachedCanvasCtx.drawImage(this._ctx.canvas, 0, 0);
 
-        return cachedCanvasCtx.canvas.toDataURL('image/png');
+        const data =  cachedCanvasCtx.canvas.toDataURL('image/png');
+
+        const win = window.open();
+        win.document.write(`<img src="${data}" />`);
     }
 
     draw () {
