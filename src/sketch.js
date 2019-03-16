@@ -38,7 +38,8 @@ export default class Sketch {
                 this.update();
                 this.draw();
             },
-            scope: this
+            scope: this,
+            githubUrl: '//github.com/jblanper/pixelator'
         });
 
         menu.createComponent('description', {
